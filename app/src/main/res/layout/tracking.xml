@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite"
+    tools:context=".MainActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="420dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/Rectangle1"/>
+
+        <ImageView
+            android:layout_width="267dp"
+            android:layout_height="45dp"
+            android:id="@+id/logo"
+            android:src="@drawable/Bose1"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="70dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/logo"
+            android:text="Tracking..."
+            android:id="@+id/track"
+            android:textSize="40dp"
+            android:textColor="@color/colorDark"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="80dp"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/track"
+            android:src="@drawable/track"
+            android:layout_marginStart="100dp"
+            android:layout_marginTop="75dp"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/arrow"
+            android:layout_below="@id/track"
+            android:layout_marginTop="78dp"
+            android:layout_marginStart="150dp"
+
+
+
+
+
+
+    </RelativeLayout>
+
+
+</ScrollView>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite"
+    tools:context=".MainActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="420dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/Rectangle1"/>
+
+            <ImageView
+                android:layout_width="267dp"
+                android:layout_height="45dp"
+                android:id="@+id/logo"
+                android:src="@drawable/Bose1"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="70dp"/>
+
+        <TextView
+            android:layout_below="@id/logo"
+            android:id="@+id/login"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Login or Sign Up to continue :"
+            android:textColor="@color/colorDark"
+            android:textSize="20dp"
+            android:layout_marginTop="200dp"
+            android:layout_marginStart="20dp"/>
+
+
+        <ImageView
+            android:layout_below="@id/login"
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:src="@drawable/button"
+            android:layout_marginStart="15dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Login !"
+            android:textSize="20dp"
+            android:layout_marginStart="175dp"
+            android:layout_marginTop="40dp"
+            android:textColor="@color/colorWhite"
+            android:layout_below="@id/login"/>
+
+        <ImageView
+            android:layout_below="@id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:src="@drawable/button"
+            android:layout_marginStart="15dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sign Up !"
+            android:textSize="20dp"
+            android:layout_marginStart="175dp"
+            android:layout_marginTop="40dp"
+            android:textColor="@color/colorWhite"
+            android:layout_below="@id/button"/>
+
+
+    </RelativeLayout>
+
+
+</ScrollView>

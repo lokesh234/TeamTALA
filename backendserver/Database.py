@@ -9,42 +9,7 @@ class DatabaseConnection():
 
         dsn_tns = cx_Oracle.makedsn('oracle.wpi.edu', '1521','ORCL') # if needed, place an 'r' before any parameter in order to address special characters such as '\'.
         self.conn = cx_Oracle.connect(user=r'ajwurts', password ='AJWURTS', dsn=dsn_tns) # if needed, place an 'r' before any parameter in order to address special characters such as '\'. For example, if your user name contains '\', you'll need to place 'r' before the user name: user=r'User Name'
-
-    def add(self, drop):
-        
-        query = "INSERT INTO drops (username, force, time, device_type, orientation) VALUES ({0}, {1}, {2}, {3}, {4})".format("'ajwurts'", 10.44, "TO_TIMESTAMP('2014-07-02 06:14:00.742000000', 'YYYY-MM-DD HH24:MI:SS.FF')", "'glasses'", "'upright'")
-        query = "INSERT INTO drops (username, force, time, device_type, orientation) VALUES ({0}, {1}, {2}, {3}, {4})".format(drop['username'], drop['force'], "TO_TIMESTAMP('" + str(drop['time']) + "', 'YYYY-MM-DD HH24:MI:SS.FF')", drop['device_type'], drop['orientation'])
-        print(query)
-
-        c = self.conn.cursor()
-        c.execute(query)
-        self.conn.commit()
-        c.close()
-
-    def remove(self, id):
-        query = 'DELETE FROM drops WHERE drops.id = ' + str(id)
-
-        c = self.conn.cursor()
-        c.execute(query)
-        self.conn.commit()
-        c.close()
-
-    def getAllDrops(self):
-
-        query = "select * from drops";
-
-        rows = []
-        c = self.conn.cursor()
-        res = c.execute(query);
-
-        for r in res:
-            parsed = [s.strip() if type(s) is str  else s for s in r  ]
-            parsed[3] = parsed[3].strftime("%m/%d/%Y, %H:%M:%S")
-
-            rows.append(parsed)
-
-        return str(rows)
-
+  
     def getUser(self, token):
         current_id = self._verifyRequest(token)
         
@@ -90,8 +55,7 @@ class DatabaseConnection():
         ## return Token if success
         ## return False if not
 
-
-    def createUser(self, username, password, email):
+    def createUser(self, username, password):
         ## Verify username does not already exist
         query = "SELECT username FROM users WHERE users.username = '{0}'".format(username)
 
@@ -108,7 +72,7 @@ class DatabaseConnection():
             c = self.conn.cursor()
 
             hashed = generate_password_hash(password)
-            query = "INSERT INTO users (username, password, email) VALUES ('{0}', '{1}', '{2}')".format(username, hashed, email)
+            query = "INSERT INTO users (username, password) VALUES ('{0}', '{1}')".format(username, hashed)
             
             c.execute(query)
             self.conn.commit()
@@ -116,7 +80,6 @@ class DatabaseConnection():
 
             ## Return True if success
             return True
-
 
     def _verifyRequest(self, token):
         ## Select user with token, if any
@@ -138,7 +101,6 @@ class DatabaseConnection():
         
         return False
 
-
     def userLoc(self, token, lat, lon):
         ## Verify request
         current_id = self._verifyRequest(token)
@@ -158,19 +120,9 @@ class DatabaseConnection():
 
     def trackUser(self, token, id):
         ## Verify request
-        if not self._verifyRequest(token):
-            ## return false if not valid
+        current_id = self._verifyRequest(token)
+        if not current_id:
             return False
-
-        ## Get Current User
-        query = "SELECT id FROM users WHERE users.token = '{0}'".format(token)
-
-        c = self.conn.cursor()
-        c.execute(query)
-
-        next = c.fetchone()
-        c.close()
-        current_id = c[0]
 
         ## Verify track exists
         
@@ -204,7 +156,7 @@ class DatabaseConnection():
         next = c.fetchone()
         c.close()
 
-        if c is not None:
+        if next is not None:
             trackrequest_id = next[0]
             # Insert Track
             query = "INSERT INTO track (tracker, tracked) VALUES ({0}, {1})".format(id, current_id)
@@ -225,20 +177,36 @@ class DatabaseConnection():
         ## return true
         return False
 
-    def requestTrack(self, token, id):
+    def requestTrack(self, token, username):
         current_id = self._verifyRequest(token)
         if not current_id:
             return False
 
         c = self.conn.cursor()
-        
 
-        query = "SELECT * FROM trackrequest WHERE trackrequest.requester = {0} AND trackrequest.requested = {1}".format(current_id, id)
+        ## Verify Username exists
+        query = "SELECT id FROM users WHERE users.id = '{0}'".format(username)
 
         c.execute(query)
 
+        other = c.fetchone()
+
+        if other is None:
+            return False
+
+        id = other[0]
+        
+        query = "SELECT * FROM trackrequest WHERE trackrequest.requester = {0} AND trackrequest.requested = {1}".format(current_id, id)
+
+        c.execute(query)
+        isTrackRequest = c.fetchone()
+
+        query = "SELECT * FROM track WHERE track.tracker = {0} AND track.tracked = {1}".format(current_id, id)
+
+        c.execute(query)
+        isTrack = c.fetchone()
         ## Request Already Exists
-        if c.fetchone():
+        if isTrackRequest or isTrack:
             return False
 
         query = "INSERT INTO trackrequest (requester, requested) VALUES ({0}, {1})".format(current_id, id)
@@ -250,6 +218,22 @@ class DatabaseConnection():
         ## token is requester, 
         ## id is requested
 
+    def removeTrackRequest(self, token, id):
+        ## verify request
+        current_id = self._verifyRequest(token)
+        if not current_id:
+            return False
+        ## remove and return true
+        query = "DELETE FROM trackrequest WHERE trackrequest.requester = {0} AND trackrequest.requested = {1}".format(id, current_id)
+
+        c = self.conn.cursor()
+        c.execute(query)
+        self.conn.commit()
+        c.close()
+
+        ## if track does not exist return false.
+        return True
+
     def removeTrack(self, token, id):
         ## verify request
         current_id = self._verifyRequest(token)
@@ -260,6 +244,7 @@ class DatabaseConnection():
 
         c = self.conn.cursor()
         c.execute(query)
+        self.conn.commit()
         c.close()
 
         ## if track does not exist return false.
@@ -272,8 +257,8 @@ class DatabaseConnection():
             return False
             
         ## retrieve friend_requests objects.
-
-        query = "SELECT requestor FROM trackrequest WHERE trackrequest.requested = {0}".format(current_id)
+        query = "SELECT username FROM users WHERE users.id IN (SELECT requester FROM trackrequest WHERE trackrequest.requested = {0})".format(current_id)
+        # query = "SELECT requester FROM trackrequest WHERE trackrequest.requested = {0}".format(current_id)
 
         ## return list of request id's
         c = self.conn.cursor()
@@ -284,12 +269,25 @@ class DatabaseConnection():
 
         return requests
 
-    
+    def getTrackList(self, token):
+        current_id = self._verifyRequest(token)
+        if not current_id:
+            return False
+
+        # query = "SELECT tracked FROM track WHERE track.tracker = {0}".format(current_id)
+
+        query = "SELECT username FROM users WHERE users.id IN (SELECT tracked FROM track where track.tracker = {0})".format(current_id)
+
+        c = self.conn.cursor()
+        c.execute(query)
+
+        tracked = [v.strip() if type(v) is str else v for v in c.fetchall()]
+        c.close()
+
+        return tracked
 
 if __name__ == "__main__":
     db = DatabaseConnection()
-    # print(db.createUser("ajwurts", "password", "email@ame.com"))
-    # print(db.createUser("user2", "pword", "email@ame.com"))
 
     ajwurts_token = db.loginUser("ajwurts", "password")
     user2_token = db.loginUser("user2", "pword")
@@ -305,4 +303,14 @@ if __name__ == "__main__":
     print("Track Request ajwurts request user2", db.requestTrack(ajwurts_token, user2_user[0] ))
     print("Track Request user2 request ajwurts", db.requestTrack(user2_token, ajwurts_user[0]))
 
+    # Get Track Requests
+    print("Get Track Requests Ajwurts", db.getFriendRequests(ajwurts_token))
+
     print("Approve Track Request user2 approve ajwurts", db.allowTrack(user2_token, ajwurts_user[0]))
+    print("Approve Track Request ajwurts approve user2", db.allowTrack(ajwurts_token, user2_user[0]))
+
+    print("Remove Track ajwurts remove user2 permission", db.removeTrack(ajwurts_token, user2_user[0]))
+
+    print("Track User2 from ajwurts",  db.trackUser(ajwurts_token, user2_user[0]))
+
+    print("Friend List ajwurts", db.getTrackList(ajwurts_token))

@@ -65,6 +65,8 @@ public class MainFragment extends Fragment {
     private MediaPlayer mp;
     private Integer musicOn = 0; //Both:0 Left:1 Right:2
 
+    private float distance;
+
     private FusedLocationProviderClient fusedLocationClient;
 
     public static float calcAngle(float lat1, float lon1, float lat2, float lon2) {
@@ -92,6 +94,7 @@ public class MainFragment extends Fragment {
                 });
 
         angle = 100;
+        distance = 100;
         db = new DatabaseConnecter(getContext());
         try {
             db.login(
@@ -110,6 +113,8 @@ public class MainFragment extends Fragment {
                                         JSONArray latlon = obj.getJSONArray("data");
                                         float lat = (float)latlon.getDouble(0);
                                         float lon = (float)latlon.getDouble(1);
+//                                        float lat = (float) 42.270325;
+//                                        float lon = (float) -71.814290;
                                         System.out.println(lat);
                                         System.out.println(lon);
                                         System.out.println("Current Lat: " + clat);
@@ -117,6 +122,10 @@ public class MainFragment extends Fragment {
                                         angle = MainFragment.calcAngle(clat, clon, lat, lon);
 
                                         System.out.println("Angle: " + angle);
+
+                                        distance = (float)MainFragment.getDistanceFromLatLon(clat, clon, lat, lon);
+
+                                        System.out.println("Distance: " + distance + " meters");
 
                                     } catch (Exception e) {
 
@@ -338,6 +347,24 @@ public class MainFragment extends Fragment {
             System.out.println("smaller"); //left
 
         }
+    }
+
+    public static double getDistanceFromLatLon(float lat1,float lon1,float lat2,float lon2) {
+        int R = 6371; // Radius of the earth in km
+        double dLat = deg2rad(lat2-lat1);  // deg2rad below
+        double dLon = deg2rad(lon2-lon1);
+        double a =
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                                Math.sin(dLon/2) * Math.sin(dLon/2)
+                ;
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double d = R * c * 1000; // Distance in km
+        return d;
+    }
+
+    public static double deg2rad(float deg) {
+        return deg * (Math.PI/180);
     }
 
 }

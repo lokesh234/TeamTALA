@@ -13,7 +13,7 @@ CREATE TABLE drops (
 
 ### GET /api/drops
 
-
+pass: FxNl7O9xp0CduDHH
 CREATE TABLE drops (
     id  INTEGER,
     username char(100),

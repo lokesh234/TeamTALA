@@ -20,13 +20,25 @@ def user_login():
     return_json = json.dumps({"token": token})
     return return_json
 
+## User Login
+@app.route('/api/user/location', methods=['POST'])
+def user_location():
+    auth = request.headers.get('Authorization')
+    token = auth.split(' ')[1]
+    user_data = request.get_json()
+    db.userLoc(token, user_data['lat'], user_data['lon'])
+    
+    return json.dumps({"hi": 10})
+
 ## Get User Track
 @app.route('/api/track/<int:user_id>', methods=['GET', 'DELETE'])
 def track(user_id):
     auth = request.headers.get('Authorization')
     token = auth.split(' ')[1]
     if request.method == "GET":
-        return str(db.trackUser(token, user_id))
+        res = db.trackUser(token, user_id)
+
+        return json.dumps({"data": [r for r in res]})
     else:
         wasSuccess = db.removeTrack(token, user_id)
         return "success" if wasSuccess else "failure"
@@ -38,7 +50,11 @@ def tracks():
     token = auth.split(' ')[1]
 
     tracks = db.getTrackList(token)
-    tracks = [t[0] for t in tracks]
+    if not tracks:
+        tracks = {"tracks": []}
+    else:
+        tracks = [t[0] for t in tracks]
+        tracks = {"tracks": tracks}
     tracks_json = json.dumps(tracks)
     return tracks_json
 
@@ -74,3 +90,8 @@ def requests():
     tracks_json = json.dumps(tracks)
     print(tracks_json)
     return tracks_json
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True)

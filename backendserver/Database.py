@@ -1,4 +1,5 @@
-import cx_Oracle
+import sqlalchemy
+from sqlalchemy.sql import text
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import secrets
@@ -6,32 +7,55 @@ import secrets
 class DatabaseConnection():
 
     def __init__(self):
+        # self.engine = sqlalchemy.create_engine('mysql+pymysql://root:FxNl7O9xp0CduDHH@35.193.223.192:3306/default')
 
-        dsn_tns = cx_Oracle.makedsn('oracle.wpi.edu', '1521','ORCL') # if needed, place an 'r' before any parameter in order to address special characters such as '\'.
-        self.conn = cx_Oracle.connect(user=r'ajwurts', password ='AJWURTS', dsn=dsn_tns) # if needed, place an 'r' before any parameter in order to address special characters such as '\'. For example, if your user name contains '\', you'll need to place 'r' before the user name: user=r'User Name'
+        #     # ... Specify additional properties here.
+        #     # ...
+        # )
+        self.engine = sqlalchemy.create_engine(
+            # Equivalent URL:
+            # mysql+pymysql://<db_user>:<db_pass>@/<db_name>?unix_socket=/cloudsql/<cloud_sql_instance_name>
+            sqlalchemy.engine.url.URL(
+                drivername="mysql+pymysql",
+                username="root",
+                password="FxNl7O9xp0CduDHH",
+                database="default",
+                query={"unix_socket": "/cloudsql/{}".format("framefinder:us-central1:framefinder2")},
+            ),
+        # ... Specify additional properties here.
+        # ...
+        )
+        # self.engine = sqlalchemy.create_engine('mysql+pymysql://root:FxNl7O9xp0CduDHH@?unix_socket=/cloudsql/framefinder:us-central1:framefinder2/default'
+
+        #     # ... Specify additional properties here.
+        #     # ...
+        # )
+        
+        print("Maybe Connected?")
+        print(self.engine.connect())
+
   
     def getUser(self, token):
         current_id = self._verifyRequest(token)
         
         query = "SELECT id, username, email, lat, lon FROM users WHERE users.id = '{0}'".format(current_id)
 
-        c = self.conn.cursor()
+        c = self.engine.connect()
 
-        c.execute(query)
-
-        return [v.strip() if type(v) is str else v for v in c.fetchone()]
+     
+        return [v.strip() if type(v) is str else v for v in c.execute(query).first()]
 
     def loginUser(self, username, password):
         ## Return Token for future logins
         ## Search for user with matching username and matched hashed password
         query = "SELECT password FROM users WHERE users.username = '{0}'".format(username)
 
-        c = self.conn.cursor()
-        c.execute(query)
-
-
-        next = c.fetchone()
+        c = self.engine.connect()
+        query = c.execute(query)
+        
+        next = query.first()
         c.close()
+        print("Inside UserLogin After first Query")
         if next is not None:
             isValidPass = check_password_hash(next[0].strip(), password)
             token = secrets.token_hex()
@@ -40,12 +64,13 @@ class DatabaseConnection():
             print(now_plus_24)
             
 
-            query = "UPDATE users SET token = '{0}', token_expiration = TO_TIMESTAMP('{1}', 'YYYY-MM-DD HH24:MI:SS.FF') where users.username = '{2}'".format(token, str(now_plus_24), username)
+            query = "UPDATE users SET token = '{0}', token_expiration = '{1}' where users.username = '{2}'".format(token, str(now_plus_24), username)
 
-            c = self.conn.cursor()
+            c = self.engine.connect()
             c.execute(query)
 
-            self.conn.commit()
+            #self.conn.commit()
+            c.close()
 
             return token
             
@@ -59,23 +84,22 @@ class DatabaseConnection():
         ## Verify username does not already exist
         query = "SELECT username FROM users WHERE users.username = '{0}'".format(username)
 
-        c = self.conn.cursor()
-        c.execute(query)
+        c = self.engine.connect()
+        
 
-        next = c.fetchone()
+        next = c.execute(query).first()
         print(next)
         if next is not None:
             ## Return false if username exists
             return False
         else:
             ## Create user with hashed password
-            c = self.conn.cursor()
+            c = self.engine.connect()
 
             hashed = generate_password_hash(password)
             query = "INSERT INTO users (username, password) VALUES ('{0}', '{1}')".format(username, hashed)
             
             c.execute(query)
-            self.conn.commit()
             c.close()
 
             ## Return True if success
@@ -83,15 +107,17 @@ class DatabaseConnection():
 
     def _verifyRequest(self, token):
         ## Select user with token, if any
+        if not token:
+            return False
 
         query = "SELECT id, token_expiration FROM users WHERE users.token = '{0}'".format(token)
 
         ## Verify token is not expired
-        c = self.conn.cursor()
+        c = self.engine.connect()
         now = datetime.now()
 
-        c.execute(query)
-        next = c.fetchone()
+        
+        next = c.execute(query).first()
         ## Return True if valid and not expired, else return False
         c.close()
         if next is not None:
@@ -111,9 +137,9 @@ class DatabaseConnection():
         ## Save Lat Lon to user
         query = "UPDATE users SET lat = {0}, lon = {1} WHERE users.token = '{2}'".format(lat, lon, token)
 
-        c = self.conn.cursor()
+        c = self.engine.connect()
         c.execute(query)
-        self.conn.commit()
+        #self.conn.commit()
         c.close()
 
         return True
@@ -128,14 +154,13 @@ class DatabaseConnection():
         
         query = "SELECT * FROM track WHERE track.tracker = {0} AND track.tracked = {1}".format(current_id, id)
 
-        c = self.conn.cursor()
-        c.execute(query)
-        if c.fetchone() is not None:
+        c = self.engine.connect()
+        
+        if c.execute(query).first()is not None:
             ## Get Lat Lon
             query = "SELECT lat, lon FROM users WHERE users.id = {0}".format(id)
-            c.execute(query)
 
-            return c.fetchone()
+            return c.execute(query).first()
         ## Return Lat Lon.
 
         return False
@@ -150,10 +175,10 @@ class DatabaseConnection():
 
         query = "SELECT id FROM trackrequest WHERE trackrequest.requester = {0} AND trackrequest.requested = {1}".format(id, current_id)
 
-        c = self.conn.cursor()
-        c.execute(query)
+        c = self.engine.connect()
 
-        next = c.fetchone()
+        next = c.execute(query).first()
+
         c.close()
 
         if next is not None:
@@ -161,14 +186,14 @@ class DatabaseConnection():
             # Insert Track
             query = "INSERT INTO track (tracker, tracked) VALUES ({0}, {1})".format(id, current_id)
 
-            c = self.conn.cursor()
+            c = self.engine.connect()
             c.execute(query)
 
             # Delete Old Track
             query = "DELETE FROM trackrequest WHERE trackrequest.id = {0}".format(trackrequest_id)
             c.execute(query)
 
-            self.conn.commit()
+            #self.conn.commit()
             return True
         ## verify track does not already exist
         ## return false if already exists
@@ -182,14 +207,12 @@ class DatabaseConnection():
         if not current_id:
             return False
 
-        c = self.conn.cursor()
+        c = self.engine.connect()
 
         ## Verify Username exists
         query = "SELECT id FROM users WHERE users.id = '{0}'".format(username)
 
-        c.execute(query)
-
-        other = c.fetchone()
+        other = c.execute(query).first()
 
         if other is None:
             return False
@@ -198,13 +221,12 @@ class DatabaseConnection():
         
         query = "SELECT * FROM trackrequest WHERE trackrequest.requester = {0} AND trackrequest.requested = {1}".format(current_id, id)
 
-        c.execute(query)
-        isTrackRequest = c.fetchone()
+
+        isTrackRequest = c.execute(query).first()
 
         query = "SELECT * FROM track WHERE track.tracker = {0} AND track.tracked = {1}".format(current_id, id)
 
-        c.execute(query)
-        isTrack = c.fetchone()
+        isTrack = c.execute(query).first()
         ## Request Already Exists
         if isTrackRequest or isTrack:
             return False
@@ -212,7 +234,7 @@ class DatabaseConnection():
         query = "INSERT INTO trackrequest (requester, requested) VALUES ({0}, {1})".format(current_id, id)
 
         c.execute(query)
-        self.conn.commit()
+        #self.conn.commit()
         c.close()
         return True
         ## token is requester, 
@@ -226,9 +248,9 @@ class DatabaseConnection():
         ## remove and return true
         query = "DELETE FROM trackrequest WHERE trackrequest.requester = {0} AND trackrequest.requested = {1}".format(id, current_id)
 
-        c = self.conn.cursor()
+        c = self.engine.connect()
         c.execute(query)
-        self.conn.commit()
+        #self.conn.commit()
         c.close()
 
         ## if track does not exist return false.
@@ -242,9 +264,9 @@ class DatabaseConnection():
         ## remove and return true
         query = "DELETE FROM track WHERE track.tracker = {0} AND track.tracked = {1}".format(id, current_id)
 
-        c = self.conn.cursor()
+        c = self.engine.connect()
         c.execute(query)
-        self.conn.commit()
+        #self.conn.commit()
         c.close()
 
         ## if track does not exist return false.
@@ -261,10 +283,10 @@ class DatabaseConnection():
         # query = "SELECT requester FROM trackrequest WHERE trackrequest.requested = {0}".format(current_id)
 
         ## return list of request id's
-        c = self.conn.cursor()
-        c.execute(query)
+        c = self.engine.connect()
+        
 
-        requests = c.fetchall()
+        requests = [r for r in c.execute(query)]
         c.close()
 
         return requests
@@ -278,10 +300,10 @@ class DatabaseConnection():
 
         query = "SELECT username FROM users WHERE users.id IN (SELECT tracked FROM track where track.tracker = {0})".format(current_id)
 
-        c = self.conn.cursor()
-        c.execute(query)
+        c = self.engine.connect()
 
-        tracked = [v.strip() if type(v) is str else v for v in c.fetchall()]
+
+        tracked = [v.strip() if type(v) is str else v for v in c.execute(query)]
         c.close()
 
         return tracked
@@ -289,13 +311,16 @@ class DatabaseConnection():
 if __name__ == "__main__":
     db = DatabaseConnection()
 
+    db.createUser("ajwurts", "password")
+    db.createUser("user2", "pword")
+
     ajwurts_token = db.loginUser("ajwurts", "password")
     user2_token = db.loginUser("user2", "pword")
 
     ajwurts_user = db.getUser(ajwurts_token)
     user2_user = db.getUser(user2_token)
 
-    # print(db._verifyRequest("alpba"))
+    # print(_verifyRequest("alpba"))
     print("Ajwurts Set Lat Lon:", db.userLoc(ajwurts_token, 10, 20))
     print("User2 Set Lat Lon:", db.userLoc(user2_token, 20, 30))
 

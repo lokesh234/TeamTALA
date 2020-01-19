@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff"
+    tools:context=".MainActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="420dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/rectangle1"/>
+
+        <ImageView
+            android:layout_width="267dp"
+            android:layout_height="45dp"
+            android:id="@+id/logo"
+            android:src="@drawable/bose1"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="70dp"/>
+
+        <TextView
+            android:layout_below="@id/logo"
+            android:id="@+id/login"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Login !"
+            android:textColor="#000000"
+            android:textSize="30dp"
+            android:layout_marginTop="150dp"
+            android:layout_marginStart="20dp"/>
+
+        <android.widget.EditText
+            android:layout_below="@id/login"
+            android:id="@+id/Email"
+            android:layout_width="380dp"
+            android:layout_height="wrap_content"
+            android:hint="Email"
+            android:textSize="25dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"/>
+
+        <android.widget.EditText
+            android:layout_below="@id/Email"
+            android:id="@+id/Password"
+            android:layout_width="380dp"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            android:inputType="textPassword"
+            android:textSize="25dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"/>
+
+        <ImageButton
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/submit_button"
+            android:layout_below="@id/Password"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/Password"
+            android:text="Submit !"
+            android:layout_marginTop="35dp"
+            android:textColor="#ffffff"
+            android:textSize="20dp"
+            android:layout_marginStart="35dp"/>
+
+    </RelativeLayout>
+
+
+</ScrollView>

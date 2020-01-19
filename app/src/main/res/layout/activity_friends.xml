@@ -10,7 +10,8 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:id="@+id/activfriend">
 
         <ImageView
             android:layout_width="420dp"
@@ -22,51 +23,52 @@
             android:layout_height="45dp"
             android:id="@+id/logo"
             android:src="@drawable/bose1"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:layout_marginStart="70dp"/>
-
+<!--
         <ImageButton
             android:layout_width="50dp"
             android:layout_height="wrap_content"
+            android:id="@+id/add"
             android:src="@drawable/add"
             android:layout_below="@id/logo"
             android:layout_marginStart="350dp"/>
-
+-->
         <ImageButton
-            android:layout_width="50dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/subtract"
+            android:id="@+id/f1"
             android:src="@drawable/subtract"
             android:layout_below="@id/logo"
             android:layout_marginStart="20dp"/>
-
-        <ImageView
+<!--
+        <ImageButton
             android:layout_width="380dp"
             android:layout_height="wrap_content"
             android:layout_below="@id/subtract"
-            android:id="@+id/one"
+            android:id="@+id/f1"
             android:src="@drawable/pallete"
             android:layout_marginStart="20dp"
             android:layout_marginTop="20dp"/>
 
-        <ImageView
+        <ImageButton
             android:layout_width="380dp"
             android:layout_height="wrap_content"
-            android:layout_below="@id/one"
-            android:id="@+id/two"
+            android:layout_below="@id/f1"
+            android:id="@+id/f2"
             android:src="@drawable/pallete"
             android:layout_marginStart="20dp"
             android:layout_marginTop="20dp"/>
 
 
-        <ImageView
+        <ImageButton
             android:layout_width="380dp"
             android:layout_height="wrap_content"
-            android:layout_below="@id/two"
+            android:layout_below="@id/f2"
             android:src="@drawable/pallete"
             android:layout_marginStart="20dp"
             android:layout_marginTop="20dp"/>
-
+-->
     </RelativeLayout>
 
 </ScrollView>

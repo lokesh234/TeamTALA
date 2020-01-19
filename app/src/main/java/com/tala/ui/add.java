@@ -9,11 +9,12 @@ import android.widget.ImageButton;
 
 public class add extends AppCompatActivity {
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add);
-        ImageButton addfriendbutton = (ImageButton) findViewById(R.id.signup);
+        ImageButton addfriendbutton = (ImageButton) findViewById(R.id.sub);
         addfriendbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -21,4 +22,5 @@ public class add extends AppCompatActivity {
             }
         });
     }
+
 }

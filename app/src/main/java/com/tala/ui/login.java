@@ -13,7 +13,7 @@ public class login extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        ImageButton logbutton = (ImageButton) findViewById(R.id.loginbutton);
+        ImageButton logbutton = (ImageButton) findViewById(R.id.submitbutton);
         logbutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
